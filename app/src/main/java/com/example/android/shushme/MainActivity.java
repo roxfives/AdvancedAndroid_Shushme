@@ -128,12 +128,10 @@ public class MainActivity extends AppCompatActivity implements
             Toast.makeText(this, getString(R.string.need_location_permission_message), Toast.LENGTH_LONG).show();
             return;
         }
-        // TODO (1) Create a PlacePicker.IntentBuilder and call startActivityForResult
         try {
             PlacePicker.IntentBuilder placePickerIntent = new PlacePicker.IntentBuilder();
             Intent intent = placePickerIntent.build(this);
             startActivityForResult(intent, PLACE_PICKER_REQUEST);
-            // TODO (2) Handle GooglePlayServices exceptions
         } catch (Error error) {
             Toast.makeText(this, "There was an error", Toast.LENGTH_LONG);
             Log.d("TAG", error.getMessage());
@@ -147,7 +145,6 @@ public class MainActivity extends AppCompatActivity implements
         Toast.makeText(this, getString(R.string.location_permissions_granted_message), Toast.LENGTH_LONG).show();
     }
 
-    // TODO (3) Implement onActivityResult and check that the requestCode is PLACE_PICKER_REQUEST
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if(requestCode == PLACE_PICKER_REQUEST && resultCode == RESULT_OK) {
@@ -165,7 +162,6 @@ public class MainActivity extends AppCompatActivity implements
         }
     }
 
-    // TODO (4) In onActivityResult, use PlacePicker.getPlace to extract the Place ID and insert it into the DB
 
     @Override
     public void onResume() {
