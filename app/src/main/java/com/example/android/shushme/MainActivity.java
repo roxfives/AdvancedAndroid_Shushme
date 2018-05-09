@@ -16,6 +16,8 @@ package com.example.android.shushme;
 * limitations under the License.
 */
 
+import android.content.ContentValues;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -26,15 +28,21 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
+import android.view.accessibility.AccessibilityManager;
 import android.widget.CheckBox;
 import android.widget.Toast;
 
+import com.example.android.shushme.provider.PlaceContract;
 import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
+import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
 import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.Places;
+import com.google.android.gms.location.places.ui.PlacePicker;
 
 public class MainActivity extends AppCompatActivity implements
         ConnectionCallbacks,
@@ -43,6 +51,7 @@ public class MainActivity extends AppCompatActivity implements
     // Constants
     public static final String TAG = MainActivity.class.getSimpleName();
     private static final int PERMISSIONS_REQUEST_FINE_LOCATION = 111;
+    private static final int PLACE_PICKER_REQUEST = 23;
 
     // Member variables
     private PlaceListAdapter mAdapter;
@@ -120,11 +129,42 @@ public class MainActivity extends AppCompatActivity implements
             return;
         }
         // TODO (1) Create a PlacePicker.IntentBuilder and call startActivityForResult
-        // TODO (2) Handle GooglePlayServices exceptions
+        try {
+            PlacePicker.IntentBuilder placePickerIntent = new PlacePicker.IntentBuilder();
+            Intent intent = placePickerIntent.build(this);
+            startActivityForResult(intent, PLACE_PICKER_REQUEST);
+            // TODO (2) Handle GooglePlayServices exceptions
+        } catch (Error error) {
+            Toast.makeText(this, "There was an error", Toast.LENGTH_LONG);
+            Log.d("TAG", error.getMessage());
+        } catch (GooglePlayServicesRepairableException error) {
+            Toast.makeText(this, "There was an error", Toast.LENGTH_LONG);
+            Log.d("TAG", error.getMessage());
+        } catch (GooglePlayServicesNotAvailableException error) {
+            Toast.makeText(this, "There was an error", Toast.LENGTH_LONG);
+            Log.d("TAG", error.getMessage());
+        }
         Toast.makeText(this, getString(R.string.location_permissions_granted_message), Toast.LENGTH_LONG).show();
     }
 
     // TODO (3) Implement onActivityResult and check that the requestCode is PLACE_PICKER_REQUEST
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if(requestCode == PLACE_PICKER_REQUEST && resultCode == RESULT_OK) {
+            Place place = PlacePicker.getPlace(this, data);
+            if(place == null) {
+                Log.d("ERROR","No place selected");
+                return;
+            }
+
+            String placeId = place.getId();
+
+            ContentValues contentValues = new ContentValues();
+            contentValues.put(PlaceContract.PlaceEntry.COLUMN_PLACE_ID, placeId);
+            getContentResolver().insert(PlaceContract.PlaceEntry.CONTENT_URI, contentValues);
+        }
+    }
+
     // TODO (4) In onActivityResult, use PlacePicker.getPlace to extract the Place ID and insert it into the DB
 
     @Override
